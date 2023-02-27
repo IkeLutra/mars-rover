@@ -1,6 +1,8 @@
+use std::fmt::Display;
+
 use regex::Regex;
 #[derive(Debug, PartialEq)]
-struct Grid {
+pub struct Grid {
     max_x: i32,
     max_y: i32,
 }
@@ -23,22 +25,37 @@ impl Grid {
 }
 
 #[derive(Debug, PartialEq)]
-enum Command {
+pub enum Command {
     Forward,
     Left,
     Right,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-enum Direction {
+pub enum Direction {
     North,
     East,
     South,
     West,
 }
 
+impl Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Direction::North => "N",
+                Direction::East => "E",
+                Direction::South => "S",
+                Direction::West => "W",
+            }
+        )
+    }
+}
+
 #[derive(Debug, PartialEq)]
-struct Robot {
+pub struct Robot {
     initial_x: i32,
     initial_y: i32,
     initial_orientation: Direction,
@@ -78,7 +95,7 @@ impl Robot {
         }
     }
 
-    pub fn process(self, grid: Grid) -> (i32, i32, Direction, bool) {
+    pub fn process(self, grid: &Grid) -> (i32, i32, Direction, bool) {
         let mut current_x = self.initial_x;
         let mut current_y = self.initial_y;
         let mut current_direction = self.initial_orientation;
@@ -159,7 +176,7 @@ mod test {
             ],
         };
         let grid = Grid { max_x: 4, max_y: 8 };
-        let (x, y, direction, is_lost) = robot.process(grid);
+        let (x, y, direction, is_lost) = robot.process(&grid);
         assert_eq!(x, 4);
         assert_eq!(y, 4);
         assert_eq!(direction, Direction::East);
@@ -183,7 +200,7 @@ mod test {
             ],
         };
         let grid = Grid { max_x: 4, max_y: 8 };
-        let (x, y, direction, is_lost) = robot.process(grid);
+        let (x, y, direction, is_lost) = robot.process(&grid);
         assert_eq!(x, 0);
         assert_eq!(y, 4);
         assert_eq!(direction, Direction::West);
