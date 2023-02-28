@@ -19,6 +19,9 @@ cargo test
 
 ## TODO
 
-- [ ] Integration test of parser
+- [X] Integration test of parser
 - [ ] Use mathematical version of directions
 - [ ] Simplify process statement for Robot
+- [X] Outcome type
+- [ ] Coordinate type with add overload
+- [ ] Replace panics with Result types

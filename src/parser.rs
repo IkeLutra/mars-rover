@@ -94,42 +94,65 @@ impl Robot {
             commands: commands,
         }
     }
+}
 
-    pub fn process(self, grid: &Grid) -> (i32, i32, Direction, bool) {
-        let mut current_x = self.initial_x;
-        let mut current_y = self.initial_y;
-        let mut current_direction = self.initial_orientation;
-        let mut is_lost = false;
-        for command in self.commands {
-            let (x, y, direction) = match command {
-                Command::Forward => match current_direction {
-                    Direction::North => (current_x, current_y + 1, current_direction),
-                    Direction::East => (current_x + 1, current_y, current_direction),
-                    Direction::South => (current_x, current_y - 1, current_direction),
-                    Direction::West => (current_x - 1, current_y, current_direction),
-                },
-                Command::Left => match current_direction {
-                    Direction::North => (current_x, current_y, Direction::West),
-                    Direction::East => (current_x, current_y, Direction::North),
-                    Direction::South => (current_x, current_y, Direction::East),
-                    Direction::West => (current_x, current_y, Direction::South),
-                },
-                Command::Right => match current_direction {
-                    Direction::North => (current_x, current_y, Direction::East),
-                    Direction::East => (current_x, current_y, Direction::South),
-                    Direction::South => (current_x, current_y, Direction::West),
-                    Direction::West => (current_x, current_y, Direction::North),
-                },
-            };
-            if x < 0 || x > grid.max_x || y < 0 || y > grid.max_y {
-                is_lost = true;
-                break;
-            }
-            current_x = x;
-            current_y = y;
-            current_direction = direction;
+#[derive(Debug, PartialEq)]
+pub struct Outcome {
+    pub x: i32,
+    pub y: i32,
+    pub direction: Direction,
+    pub is_lost: bool,
+}
+
+impl Display for Outcome {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {}, {})", self.x, self.y, self.direction)?;
+        if self.is_lost {
+            write!(f, " LOST")?;
         }
-        (current_x, current_y, current_direction, is_lost)
+        Ok(())
+    }
+}
+
+pub fn process(grid: &Grid, robot: &Robot) -> Outcome {
+    let mut current_x = robot.initial_x;
+    let mut current_y = robot.initial_y;
+    let mut current_direction = robot.initial_orientation;
+    let mut is_lost = false;
+    for command in robot.commands.iter() {
+        let (x, y, direction) = match command {
+            Command::Forward => match current_direction {
+                Direction::North => (current_x, current_y + 1, current_direction),
+                Direction::East => (current_x + 1, current_y, current_direction),
+                Direction::South => (current_x, current_y - 1, current_direction),
+                Direction::West => (current_x - 1, current_y, current_direction),
+            },
+            Command::Left => match current_direction {
+                Direction::North => (current_x, current_y, Direction::West),
+                Direction::East => (current_x, current_y, Direction::North),
+                Direction::South => (current_x, current_y, Direction::East),
+                Direction::West => (current_x, current_y, Direction::South),
+            },
+            Command::Right => match current_direction {
+                Direction::North => (current_x, current_y, Direction::East),
+                Direction::East => (current_x, current_y, Direction::South),
+                Direction::South => (current_x, current_y, Direction::West),
+                Direction::West => (current_x, current_y, Direction::North),
+            },
+        };
+        if x < 0 || x > grid.max_x || y < 0 || y > grid.max_y {
+            is_lost = true;
+            break;
+        }
+        current_x = x;
+        current_y = y;
+        current_direction = direction;
+    }
+    Outcome {
+        x: current_x,
+        y: current_y,
+        direction: current_direction,
+        is_lost: is_lost,
     }
 }
 
@@ -176,11 +199,16 @@ mod test {
             ],
         };
         let grid = Grid { max_x: 4, max_y: 8 };
-        let (x, y, direction, is_lost) = robot.process(&grid);
-        assert_eq!(x, 4);
-        assert_eq!(y, 4);
-        assert_eq!(direction, Direction::East);
-        assert_eq!(is_lost, false);
+        let outcome = process(&grid, &robot);
+        assert_eq!(
+            outcome,
+            Outcome {
+                x: 4,
+                y: 4,
+                direction: Direction::East,
+                is_lost: false
+            }
+        );
     }
 
     #[test]
@@ -200,10 +228,32 @@ mod test {
             ],
         };
         let grid = Grid { max_x: 4, max_y: 8 };
-        let (x, y, direction, is_lost) = robot.process(&grid);
-        assert_eq!(x, 0);
-        assert_eq!(y, 4);
-        assert_eq!(direction, Direction::West);
-        assert_eq!(is_lost, true);
+        let outcome = process(&grid, &robot);
+        assert_eq!(
+            outcome,
+            Outcome {
+                x: 0,
+                y: 4,
+                direction: Direction::West,
+                is_lost: true
+            }
+        );
+    }
+    #[test]
+    fn test_display_outcome() {
+        let outcome1 = Outcome {
+            x: 1,
+            y: 2,
+            direction: Direction::South,
+            is_lost: false,
+        };
+        assert_eq!(outcome1.to_string(), "(1, 2, S)");
+        let outcome2 = Outcome {
+            x: 3,
+            y: 4,
+            direction: Direction::West,
+            is_lost: true,
+        };
+        assert_eq!(outcome2.to_string(), "(3, 4, W) LOST");
     }
 }
