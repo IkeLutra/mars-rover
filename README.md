@@ -2,6 +2,7 @@
 
 ## Requirements
 
+- Unix system (tested on MacOS 13.2.1)
 - Rust 1.20 ([Install instructions](https://www.rust-lang.org/tools/install))
 
 ## Running
